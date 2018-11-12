@@ -8,7 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import us.rengo.milk.MilkPlugin;
-import us.rengo.milk.player.Profile;
+import us.rengo.milk.player.PlayerProfile;
 
 @AllArgsConstructor
 public class PlayerListener implements Listener {
@@ -17,25 +17,25 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
-        Profile profile = new Profile(event.getUniqueId());
+        PlayerProfile playerProfile = new PlayerProfile(event.getUniqueId());
 
         try {
-            profile.load();
+            playerProfile.load();
         } catch (Exception e) {
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
             event.setKickMessage(ChatColor.RED + "Your player data did not load properly, please relog. \nIf this continues to happen, please join ts.rengo.us.");
         }
 
-        this.plugin.getProfileManager().getPlayerData().put(event.getUniqueId(), profile);
+        this.plugin.getProfileManager().getPlayerData().put(event.getUniqueId(), playerProfile);
 
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        Profile profile = this.plugin.getProfileManager().getProfile(player);
+        PlayerProfile playerProfile = this.plugin.getProfileManager().getProfile(player);
 
-        profile.setupPermissionsAttachment();
+        playerProfile.setupPermissionsAttachment();
     }
 
 

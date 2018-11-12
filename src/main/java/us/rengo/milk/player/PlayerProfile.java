@@ -7,9 +7,9 @@ import com.google.gson.JsonPrimitive;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import lombok.Getter;
+import lombok.Setter;
 import org.bson.Document;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-public class Profile {
+@Setter
+public class PlayerProfile {
 
     private final UUID uuid;
 
@@ -29,7 +30,7 @@ public class Profile {
 
     private Rank rank;
 
-    public Profile(UUID uuid) {
+    public PlayerProfile(UUID uuid) {
         this.uuid = uuid;
     }
 
@@ -39,23 +40,24 @@ public class Profile {
 
     public void setupPermissionsAttachment() {
         Player player = this.toPlayer();
-        if (player == null) return;
 
-        for (PermissionAttachmentInfo attachmentInfo : player.getEffectivePermissions()) {
-            if (attachmentInfo.getAttachment() == null) {
-                continue;
+        if (player != null) {
+            for (PermissionAttachmentInfo attachmentInfo : player.getEffectivePermissions()) {
+                if (attachmentInfo.getAttachment() == null) {
+                    continue;
+                }
+
+                attachmentInfo.getAttachment().getPermissions().forEach((permission, value) -> {
+                    attachmentInfo.getAttachment().unsetPermission(permission);
+                });
             }
 
-            attachmentInfo.getAttachment().getPermissions().forEach((permission, value) -> {
-                attachmentInfo.getAttachment().unsetPermission(permission);
-            });
+            PermissionAttachment attachment = player.addAttachment(MilkPlugin.getInstance());
+
+            this.getAllPermissions().forEach(permission -> attachment.setPermission(permission, true));
+
+            player.recalculatePermissions();
         }
-
-        PermissionAttachment attachment = player.addAttachment(MilkPlugin.getInstance());
-
-        this.getAllPermissions().forEach(permission -> attachment.setPermission(permission, true));
-
-        player.recalculatePermissions();
     }
 
     private List<String> getAllPermissions() {
@@ -75,12 +77,20 @@ public class Profile {
             }
 
             this.permissions = permissions;
+
+            for (Rank rank : MilkPlugin.getInstance().getRankManager().getRanks().values()) {
+                if (rank.getName().equals(document.getString("rank"))) {
+                    this.rank = rank;
+                    break;
+                }
+            }
         }
     }
 
     public void save() {
         Document document = new Document();
 
+        document.append("rank", this.rank.getName());
 
         JsonArray permissions = new JsonArray();
         this.permissions.forEach(perm -> permissions.add(new JsonPrimitive(perm)));
