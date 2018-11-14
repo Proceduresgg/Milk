@@ -2,6 +2,8 @@ package us.rengo.milk;
 
 import co.aikar.commands.PaperCommandManager;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
@@ -13,6 +15,7 @@ import us.rengo.milk.managers.ProfileManager;
 import us.rengo.milk.managers.RankManager;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Getter
 public class MilkPlugin extends JavaPlugin {
@@ -22,7 +25,9 @@ public class MilkPlugin extends JavaPlugin {
     public static final ChatColor serverColorBright = ChatColor.AQUA;
     public static final ChatColor serverColorDim = ChatColor.GRAY;
 
+    private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
+
     private ProfileManager profileManager;
     private RankManager rankManager;
 
@@ -31,18 +36,24 @@ public class MilkPlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        mongoDatabase = new MongoClient(new ServerAddress("127.0.0.1", 27017)).getDatabase("milk");
+        MongoCredential credential = MongoCredential.createCredential("god", "admin", "FUCK YOU".toCharArray());
+        this.mongoClient = new MongoClient(new ServerAddress("127.0.0.1", 27017), Arrays.asList(credential));
+        this.mongoDatabase = this.mongoClient.getDatabase("admin");
 
         this.profileManager = new ProfileManager();
         this.rankManager = new RankManager();
 
+        this.registerListeners();
         this.registerCommands();
+    }
+
+    public void onDisable() {
+        this.rankManager.saveRanks();
+        this.profileManager.saveProfiles();
     }
 
     private void registerCommands() {
         this.commandManager = new PaperCommandManager(this);
-
-        this.commandManager.registerDependency(MilkPlugin.class, this);
 
         Arrays.asList(new RankCommand())
                 .forEach(command -> this.commandManager.registerCommand(command));

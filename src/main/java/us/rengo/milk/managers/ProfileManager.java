@@ -14,14 +14,20 @@ import java.util.UUID;
 @Getter
 public class ProfileManager {
 
-    private Map<UUID, PlayerProfile> playerData = new HashMap<>();
+    private Map<UUID, PlayerProfile> profiles = new HashMap<>();
     private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("ranks");
 
     public PlayerProfile getProfile(UUID uuid) {
-        return this.playerData.computeIfAbsent(uuid, k -> new PlayerProfile(uuid));
+        return this.profiles.computeIfAbsent(uuid, k -> new PlayerProfile(uuid));
     }
 
     public PlayerProfile getProfile(Player player) {
         return this.getProfile(player.getUniqueId());
+    }
+
+    public void saveProfiles() {
+        for (PlayerProfile profile : this.profiles.values()) {
+            profile.save();
+        }
     }
 }

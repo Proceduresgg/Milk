@@ -7,6 +7,7 @@ import com.google.gson.JsonPrimitive;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import lombok.Getter;
+import lombok.Setter;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import us.rengo.milk.MilkPlugin;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
 public class Rank {
 
     private List<String> permissions = new ArrayList<>();

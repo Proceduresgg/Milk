@@ -73,4 +73,20 @@ public class RankCommand extends BaseCommand {
         this.plugin.getRankManager().getRanks().remove(args[0]);
         sender.sendMessage(MilkPlugin.serverColorBright + "The specified rank has been deleted.");
     }
+
+    @CommandAlias("setprefix")
+    public void onSetPrefix(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(MilkPlugin.serverColorBright + "Usage: /rank setprefix [rank] [prefix]");
+            return;
+
+        } else if (!this.plugin.getRankManager().getRanks().containsKey(args[0])) {
+            sender.sendMessage(MilkPlugin.serverColorBright + "That rank does not exist.");
+            return;
+        }
+
+        this.plugin.getRankManager().getRanks().get(args[0]).setPrefix(args[1]);
+
+        sender.sendMessage(MilkPlugin.serverColorBright + "The prefix for that rank has been updated.");
+    }
 }

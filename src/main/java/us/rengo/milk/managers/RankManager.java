@@ -17,16 +17,25 @@ public class RankManager {
     private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("ranks");
 
     public RankManager() {
-        this.load();
+        this.loadRanks();
     }
 
-    private void load() {
+    private void loadRanks() {
         try (MongoCursor<Document> cursor = collection.find().iterator()) {
             while (cursor.hasNext()) {
                 Document document = cursor.next();
+                Rank rank = new Rank(document.getString("name"));
 
+                rank.load(document);
 
+                this.ranks.put(rank.getName(), rank);
             }
+        }
+    }
+
+    public void saveRanks() {
+        for (Rank rank : this.ranks.values()) {
+            rank.save();
         }
     }
 }

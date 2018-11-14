@@ -1,0 +1,4 @@
+name: Milk
+author: Procedures
+version: 0.1
+main: us.rengo.milk.MilkPlugin
