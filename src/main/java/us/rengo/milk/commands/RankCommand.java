@@ -16,77 +16,40 @@ public class RankCommand extends BaseCommand {
     @Dependency
     private MilkPlugin plugin;
 
-    @Default
-    @CatchUnknown
+    @Syntax("<target> <rank>")
     @CommandCompletion("@players")
-    public void onDefault(CommandSender sender, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "Usage: /rank [player] [rank]");
-            return;
-
-        } else if (!this.plugin.getRankManager().getRanks().containsKey(args[1])) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "That rank does not exist.");
-            return;
-
-        } else if (Bukkit.getPlayer(args[0]) == null) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "The specified player does not exist.");
-            return;
-        }
-
-        Player target = Bukkit.getServer().getPlayer(args[0]);
-        PlayerProfile targetProfile = this.plugin.getProfileManager().getProfile(target);
-        Rank rank = this.plugin.getRankManager().getRanks().get(args[1]);
-
+    public void onDefault(CommandSender sender, PlayerProfile targetProfile, Rank rank) {
         targetProfile.setRank(rank);
 
+        Bukkit.getPlayer(targetProfile.getUuid()).sendMessage(MilkPlugin.serverColorBright + "Your rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.serverColorBright + ".");
+
         sender.sendMessage(MilkPlugin.serverColorBright + "That player's rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.serverColorBright + ".");
-        target.sendMessage(MilkPlugin.serverColorBright + "Your rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.serverColorBright + ".");
     }
 
+    @Syntax("<name>")
     @Subcommand("create")
-    public void onCreate(CommandSender sender, String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "Usage: /rank create [name]");
-            return;
-
-        } else if (this.plugin.getRankManager().getRanks().containsKey(args[0])) {
+    public void onCreate(CommandSender sender, String name) {
+        if (this.plugin.getRankManager().getRanks().containsKey(name)) {
             sender.sendMessage(MilkPlugin.serverColorBright + "That rank already exists.");
             return;
         }
 
-        Rank rank = new Rank(args[0]);
-        this.plugin.getRankManager().getRanks().put(args[0], rank);
+        Rank rank = new Rank(name);
+        this.plugin.getRankManager().getRanks().put(name, rank);
         sender.sendMessage(MilkPlugin.serverColorBright + "The specified rank has been created.");
     }
 
+    @Syntax("<rank>")
     @Subcommand("delete")
-    public void onDelete(CommandSender sender, String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "Usage: /rank delete [name]");
-            return;
-
-        } else if (!this.plugin.getRankManager().getRanks().containsKey(args[0])) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "That rank does not exist.");
-            return;
-        }
-
-        this.plugin.getRankManager().getRanks().remove(args[0]);
+    public void onDelete(CommandSender sender, Rank rank) {
+        this.plugin.getRankManager().getRanks().remove(rank.getName());
         sender.sendMessage(MilkPlugin.serverColorBright + "The specified rank has been deleted.");
     }
 
+    @Syntax("<prefix> <rank>")
     @CommandAlias("setprefix")
-    public void onSetPrefix(CommandSender sender, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "Usage: /rank setprefix [rank] [prefix]");
-            return;
-
-        } else if (!this.plugin.getRankManager().getRanks().containsKey(args[0])) {
-            sender.sendMessage(MilkPlugin.serverColorBright + "That rank does not exist.");
-            return;
-        }
-
-        this.plugin.getRankManager().getRanks().get(args[0]).setPrefix(args[1]);
-
+    public void onSetPrefix(CommandSender sender, String prefix, Rank rank) {
+        rank.setPrefix(prefix);
         sender.sendMessage(MilkPlugin.serverColorBright + "The prefix for that rank has been updated.");
     }
 }

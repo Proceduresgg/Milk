@@ -1,18 +1,25 @@
 package us.rengo.milk;
 
+import co.aikar.commands.BukkitCommandExecutionContext;
+import co.aikar.commands.InvalidCommandArgument;
 import co.aikar.commands.PaperCommandManager;
+import co.aikar.commands.contexts.ContextResolver;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import us.rengo.milk.commands.RankCommand;
 import us.rengo.milk.listeners.PlayerListener;
 import us.rengo.milk.managers.ProfileManager;
 import us.rengo.milk.managers.RankManager;
+import us.rengo.milk.player.PlayerProfile;
+import us.rengo.milk.rank.Rank;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +51,7 @@ public class MilkPlugin extends JavaPlugin {
         this.rankManager = new RankManager();
 
         this.registerListeners();
+        this.registerContexts();
         this.registerCommands();
     }
 
@@ -57,6 +65,32 @@ public class MilkPlugin extends JavaPlugin {
 
         Arrays.asList(new RankCommand())
                 .forEach(command -> this.commandManager.registerCommand(command));
+    }
+
+    private void registerContexts() {
+        this.commandManager.getCommandContexts().registerContext(Rank.class, c -> {
+            String arg = c.popFirstArg();
+
+            if (!rankManager.getRanks().containsKey(arg.toLowerCase())) {
+                c.getSender().sendMessage(serverColorBright + "The specified rank does not exist.");
+                throw new InvalidCommandArgument(true);
+            }
+
+            return rankManager.getRanks().get(arg);
+        });
+
+        this.commandManager.getCommandContexts().registerContext(PlayerProfile.class, c -> {
+            String arg = c.popFirstArg();
+
+            if (Bukkit.getPlayer(arg) == null) {
+                c.getSender().sendMessage(serverColorBright + "The specified player is not online.");
+                throw new InvalidCommandArgument(true);
+            }
+
+            return profileManager.getProfile(Bukkit.getPlayer(arg));
+        });
+
+        //this.commandManager.getCommandContexts().registerContext();
     }
 
     private void registerListeners() {
