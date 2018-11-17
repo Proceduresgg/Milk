@@ -28,7 +28,6 @@ public class PlayerListener implements Listener {
         }
 
         this.plugin.getProfileManager().getProfiles().put(event.getUniqueId(), playerProfile);
-
     }
 
     @EventHandler

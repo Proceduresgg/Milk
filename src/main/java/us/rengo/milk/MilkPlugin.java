@@ -1,18 +1,14 @@
 package us.rengo.milk;
 
-import co.aikar.commands.BukkitCommandExecutionContext;
 import co.aikar.commands.InvalidCommandArgument;
 import co.aikar.commands.PaperCommandManager;
-import co.aikar.commands.contexts.ContextResolver;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import us.rengo.milk.commands.RankCommand;
 import us.rengo.milk.listeners.PlayerListener;
@@ -22,15 +18,14 @@ import us.rengo.milk.player.PlayerProfile;
 import us.rengo.milk.rank.Rank;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Getter
 public class MilkPlugin extends JavaPlugin {
 
     @Getter private static MilkPlugin instance;
 
-    public static final ChatColor serverColorBright = ChatColor.AQUA;
-    public static final ChatColor serverColorDim = ChatColor.GRAY;
+    public static final ChatColor SERVER_COLOR_BRIGHT = ChatColor.AQUA;
+    public static final ChatColor SERVER_COLOR_DIM = ChatColor.GRAY;
 
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
@@ -43,7 +38,7 @@ public class MilkPlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        MongoCredential credential = MongoCredential.createCredential("god", "admin", "FUCK YOU".toCharArray());
+        MongoCredential credential = MongoCredential.createCredential("COCK", "admin", "cock".toCharArray());
         this.mongoClient = new MongoClient(new ServerAddress("127.0.0.1", 27017), Arrays.asList(credential));
         this.mongoDatabase = this.mongoClient.getDatabase("admin");
 
@@ -60,6 +55,11 @@ public class MilkPlugin extends JavaPlugin {
         this.profileManager.saveProfiles();
     }
 
+    private void registerListeners() {
+        Arrays.asList(new PlayerListener(this))
+                .forEach(listener -> this.getServer().getPluginManager().registerEvents(listener, this));
+    }
+
     private void registerCommands() {
         this.commandManager = new PaperCommandManager(this);
 
@@ -72,7 +72,7 @@ public class MilkPlugin extends JavaPlugin {
             String arg = c.popFirstArg();
 
             if (!rankManager.getRanks().containsKey(arg.toLowerCase())) {
-                c.getSender().sendMessage(serverColorBright + "The specified rank does not exist.");
+                c.getSender().sendMessage(SERVER_COLOR_BRIGHT + "The specified rank does not exist.");
                 throw new InvalidCommandArgument(true);
             }
 
@@ -83,18 +83,11 @@ public class MilkPlugin extends JavaPlugin {
             String arg = c.popFirstArg();
 
             if (Bukkit.getPlayer(arg) == null) {
-                c.getSender().sendMessage(serverColorBright + "The specified player is not online.");
+                c.getSender().sendMessage(SERVER_COLOR_BRIGHT + "The specified player is not online.");
                 throw new InvalidCommandArgument(true);
             }
 
             return profileManager.getProfile(Bukkit.getPlayer(arg));
         });
-
-        //this.commandManager.getCommandContexts().registerContext();
-    }
-
-    private void registerListeners() {
-        Arrays.asList(new PlayerListener(this))
-                .forEach(listener -> this.getServer().getPluginManager().registerEvents(listener, this));
     }
 }
