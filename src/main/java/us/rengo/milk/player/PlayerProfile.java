@@ -1,7 +1,7 @@
 package us.rengo.milk.player;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.mongodb.client.model.Filters;
@@ -17,6 +17,7 @@ import us.rengo.milk.MilkPlugin;
 import us.rengo.milk.rank.Rank;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,6 +64,7 @@ public class PlayerProfile {
     private List<String> getAllPermissions() {
         List<String> permissions = new ArrayList<>(this.permissions);
         permissions.addAll(this.rank.getAllPermissions());
+
         return permissions;
     }
 
@@ -72,23 +74,23 @@ public class PlayerProfile {
         if (document != null) {
             List<String> permissions = new ArrayList<>();
 
-            for (JsonElement element : new JsonParser().parse(document.getString("permissions")).getAsJsonArray()) {
-                permissions.add(element.getAsString());
-            }
+            new JsonParser().parse(document.getString("permissions")).getAsJsonArray().forEach(element -> permissions.add(element.getAsString()));
 
             this.permissions = permissions;
 
-            for (Rank rank : MilkPlugin.getInstance().getRankManager().getRanks().values()) {
-                if (rank.getName().equals(document.getString("rank"))) {
-                    this.rank = rank;
-                    break;
-                }
-            }
+            MilkPlugin.getInstance().getRankManager().getRanks().entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().equals(document.getString("rank")))
+                    .forEach(entry -> {
+                        this.rank = entry.getValue();
+                    });
+        } else {
+            this.rank = MilkPlugin.getInstance().getRankManager().getRanks().get("default");
         }
     }
 
     public void save() {
-        Document document = new Document();
+        Document document = new Document("uuid", this.uuid.toString());
 
         document.append("rank", this.rank.getName());
 

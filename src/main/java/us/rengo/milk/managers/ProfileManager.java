@@ -15,7 +15,7 @@ import java.util.UUID;
 public class ProfileManager {
 
     private Map<UUID, PlayerProfile> profiles = new HashMap<>();
-    private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("ranks");
+    private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("player-ranks");
 
     public PlayerProfile getProfile(UUID uuid) {
         return this.profiles.computeIfAbsent(uuid, k -> new PlayerProfile(uuid));
@@ -26,8 +26,6 @@ public class ProfileManager {
     }
 
     public void saveProfiles() {
-        for (PlayerProfile profile : this.profiles.values()) {
-            profile.save();
-        }
+        this.profiles.values().forEach(PlayerProfile::save);
     }
 }

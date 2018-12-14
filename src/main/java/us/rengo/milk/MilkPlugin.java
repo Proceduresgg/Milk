@@ -3,6 +3,7 @@ package us.rengo.milk;
 import co.aikar.commands.InvalidCommandArgument;
 import co.aikar.commands.PaperCommandManager;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
@@ -33,21 +34,19 @@ public class MilkPlugin extends JavaPlugin {
     private ProfileManager profileManager;
     private RankManager rankManager;
 
-    private PaperCommandManager commandManager;
-
     public void onEnable() {
         instance = this;
 
-        MongoCredential credential = MongoCredential.createCredential("COCK", "admin", "cock".toCharArray());
-        this.mongoClient = new MongoClient(new ServerAddress("127.0.0.1", 27017), Arrays.asList(credential));
-        this.mongoDatabase = this.mongoClient.getDatabase("admin");
+        MongoClientOptions options = MongoClientOptions.builder().connectionsPerHost(50).build();
+        MongoCredential credential = MongoCredential.createCredential("Shyon", "practice", "fuckk".toCharArray());
+        this.mongoClient = new MongoClient(new ServerAddress("127.0.0.1", 27017), credential, options);
+        this.mongoDatabase = this.mongoClient.getDatabase("milk");
 
         this.profileManager = new ProfileManager();
         this.rankManager = new RankManager();
 
         this.registerListeners();
-        this.registerContexts();
-        this.registerCommands();
+        this.registerCommands(new PaperCommandManager(this));
     }
 
     public void onDisable() {
@@ -56,19 +55,17 @@ public class MilkPlugin extends JavaPlugin {
     }
 
     private void registerListeners() {
-        Arrays.asList(new PlayerListener(this))
-                .forEach(listener -> this.getServer().getPluginManager().registerEvents(listener, this));
+        Arrays.asList(new PlayerListener(this)).forEach(listener -> this.getServer().getPluginManager().registerEvents(listener, this));
     }
 
-    private void registerCommands() {
-        this.commandManager = new PaperCommandManager(this);
+    private void registerCommands(PaperCommandManager commandManager) {
+        this.registerContexts(commandManager);
 
-        Arrays.asList(new RankCommand())
-                .forEach(command -> this.commandManager.registerCommand(command));
+        Arrays.asList(new RankCommand()).forEach(commandManager::registerCommand);
     }
 
-    private void registerContexts() {
-        this.commandManager.getCommandContexts().registerContext(Rank.class, c -> {
+    private void registerContexts(PaperCommandManager commandManager) {
+        commandManager.getCommandContexts().registerContext(Rank.class, c -> {
             String arg = c.popFirstArg();
 
             if (!rankManager.getRanks().containsKey(arg.toLowerCase())) {
@@ -79,7 +76,7 @@ public class MilkPlugin extends JavaPlugin {
             return rankManager.getRanks().get(arg);
         });
 
-        this.commandManager.getCommandContexts().registerContext(PlayerProfile.class, c -> {
+        commandManager.getCommandContexts().registerContext(PlayerProfile.class, c -> {
             String arg = c.popFirstArg();
 
             if (Bukkit.getPlayer(arg) == null) {

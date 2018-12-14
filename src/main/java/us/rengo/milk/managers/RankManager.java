@@ -18,14 +18,27 @@ public class RankManager {
 
     public RankManager() {
         this.loadRanks();
+
+        if (!this.ranks.containsKey("default")) {
+            this.ranks.put("default", new Rank("default"));
+        }
     }
 
     private void loadRanks() {
-        try (MongoCursor<Document> cursor = collection.find().iterator()) {
+        try (MongoCursor<Document> cursor = this.collection.find().iterator()) {
             while (cursor.hasNext()) {
                 Document document = cursor.next();
-                Rank rank = new Rank(document.getString("name"));
 
+                if (document.getString("name") == null) {
+                    collection.deleteOne(document);
+                    continue;
+
+                } else if (document.getString("name").contains(" ")) {
+                    collection.deleteOne(document);
+                    continue;
+                }
+
+                Rank rank = new Rank(document.getString("name"));
                 rank.load(document);
 
                 this.ranks.put(rank.getName(), rank);

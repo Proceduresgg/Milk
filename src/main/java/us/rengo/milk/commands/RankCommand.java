@@ -15,6 +15,8 @@ public class RankCommand extends BaseCommand {
     @Dependency
     private MilkPlugin plugin;
 
+    @Default
+    @CatchUnknown
     @Syntax("<target> <rank>")
     @CommandCompletion("@players")
     public void onDefault(CommandSender sender, PlayerProfile targetProfile, Rank rank) {
