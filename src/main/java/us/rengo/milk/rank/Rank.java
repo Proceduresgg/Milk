@@ -11,6 +11,7 @@ import lombok.Setter;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import us.rengo.milk.MilkPlugin;
+import us.rengo.milk.utils.MessageUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class Rank {
     private ChatColor color = ChatColor.WHITE;
 
     public Rank(String name) {
-        this.name = name;
+        this.name = name.toLowerCase();
     }
 
     public List<String> getAllPermissions() {
@@ -45,7 +46,6 @@ public class Rank {
     }
 
     public void load(Document document) {
-        this.name = document.getString("name");
         this.prefix = ChatColor.translateAlternateColorCodes('&', document.getString("prefix"));
         this.suffix = ChatColor.translateAlternateColorCodes('&', document.getString("suffix"));
         this.hierarchy = document.getInteger("hierarchy");
@@ -75,5 +75,9 @@ public class Rank {
         document.put("permissions", permissions.toString());
 
         MilkPlugin.getInstance().getRankManager().getCollection().replaceOne(Filters.eq("name", this.name), document, new ReplaceOptions().upsert(true));
+    }
+
+    public String getName() {
+        return MessageUtil.color(this.name);
     }
 }

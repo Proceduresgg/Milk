@@ -3,13 +3,15 @@ package us.rengo.milk.commands;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import us.rengo.milk.MilkPlugin;
 import us.rengo.milk.player.PlayerProfile;
 import us.rengo.milk.rank.Rank;
 
 @CommandAlias("rank")
-@CommandPermission("rengo.rank")
+@CommandPermission("rengo.admin")
 public class RankCommand extends BaseCommand {
 
     @Dependency
@@ -19,12 +21,29 @@ public class RankCommand extends BaseCommand {
     @CatchUnknown
     @Syntax("<target> <rank>")
     @CommandCompletion("@players")
-    public void onDefault(CommandSender sender, PlayerProfile targetProfile, Rank rank) {
-        targetProfile.setRank(rank);
+    public void onDefault(CommandSender sender, OfflinePlayer player, Rank rank) {
+        if (player.isOnline()) {
+            PlayerProfile profile = this.plugin.getProfileManager().getProfile(player.getUniqueId());
+            profile.setRank(rank);
+            profile.save();
 
-        Bukkit.getPlayer(targetProfile.getUuid()).sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "Your rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.SERVER_COLOR_BRIGHT + ".");
+            Bukkit.getPlayer(profile.getUuid()).sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "Your rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.SERVER_COLOR_BRIGHT + ".");
 
-        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "That player's rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.SERVER_COLOR_BRIGHT + ".");
+            sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "That player's rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.SERVER_COLOR_BRIGHT + ".");
+            return;
+        }
+        new PlayerProfile(player.getUniqueId()).load().whenComplete((profile, throwable) -> {
+            if (throwable != null) {
+                sender.sendMessage(ChatColor.RED + "No such player exists.");
+            } else {
+                profile.setRank(rank);
+                profile.save();
+
+                Bukkit.getPlayer(profile.getUuid()).sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "Your rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.SERVER_COLOR_BRIGHT + ".");
+
+                sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "That player's rank has been updated to " + rank.getColor() + rank.getName() + MilkPlugin.SERVER_COLOR_BRIGHT + ".");
+            }
+        });
     }
 
     @Syntax("<name>")

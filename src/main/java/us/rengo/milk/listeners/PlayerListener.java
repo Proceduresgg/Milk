@@ -3,7 +3,6 @@ package us.rengo.milk.listeners;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,7 +14,7 @@ import us.rengo.milk.MilkPlugin;
 import us.rengo.milk.player.PlayerProfile;
 import us.rengo.milk.utils.MessageUtil;
 
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 @AllArgsConstructor
 public class PlayerListener implements Listener {
@@ -24,44 +23,30 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
-        if (Bukkit.getOnlinePlayers().stream().map(Entity::getUniqueId).collect(Collectors.toList()).contains(event.getUniqueId())) {
-            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
-            event.setKickMessage(ChatColor.RED + "Your player data did not load properly, please relog. \nIf this continues to happen, please join ts.rengo.us.");
-
-            Bukkit.getPlayer(event.getUniqueId()).kickPlayer("wtf? idiot");
-        }
-
-        PlayerProfile playerProfile = new PlayerProfile(event.getUniqueId());
-
+        CompletableFuture<PlayerProfile> load = new PlayerProfile(event.getUniqueId()).load();
         try {
-            playerProfile.load();
+            this.plugin.getProfileManager().getProfiles().put(event.getUniqueId(), load.get());
         } catch (Exception e) {
-            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
-            event.setKickMessage(ChatColor.RED + "Your player data did not load properly, please relog. \nIf this continues to happen, please join ts.rengo.us.");
+            e.printStackTrace();
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, ChatColor.RED + "Error Loading Data Try Again");
         }
-
-        this.plugin.getProfileManager().getProfiles().put(event.getUniqueId(), playerProfile);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        PlayerProfile playerProfile = this.plugin.getProfileManager().getProfile(player);
-
-        if (playerProfile == null) {
-            player.kickPlayer(ChatColor.RED + "Your player data did not load properly, please relog. \nIf this continues to happen, please join ts.rengo.us.");
-            return;
-        }
-
-        playerProfile.setupPermissionsAttachment();
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        PlayerProfile playerProfile = this.plugin.getProfileManager().getProfiles().remove(player.getUniqueId());
+        PlayerProfile playerProfile = this.plugin.getProfileManager().getProfiles().get(player.getUniqueId());
 
-        playerProfile.save();
+        if (playerProfile != null) {
+            playerProfile.save();
+        }
+
+        this.plugin.getProfileManager().getProfiles().remove(player.getUniqueId());
     }
 
     @EventHandler
@@ -69,6 +54,11 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         PlayerProfile playerProfile = this.plugin.getProfileManager().getProfile(player);
 
-        event.setFormat(MessageUtil.color( playerProfile.getRank().getPrefix() + "%1$s" + ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s"));
+        if (playerProfile == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        event.setFormat(MessageUtil.color(playerProfile.getRank().getPrefix() + "%1$s" + ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s"));
     }
 }

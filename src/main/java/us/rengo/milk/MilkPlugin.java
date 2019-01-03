@@ -11,6 +11,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
+import us.rengo.milk.commands.ListCommand;
 import us.rengo.milk.commands.RankCommand;
 import us.rengo.milk.listeners.PlayerListener;
 import us.rengo.milk.managers.ProfileManager;
@@ -19,13 +20,14 @@ import us.rengo.milk.player.PlayerProfile;
 import us.rengo.milk.rank.Rank;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 public class MilkPlugin extends JavaPlugin {
 
     @Getter private static MilkPlugin instance;
 
-    public static final ChatColor SERVER_COLOR_BRIGHT = ChatColor.AQUA;
+    public static final ChatColor SERVER_COLOR_BRIGHT = ChatColor.DARK_AQUA;
     public static final ChatColor SERVER_COLOR_DIM = ChatColor.GRAY;
 
     private MongoClient mongoClient;
@@ -61,30 +63,19 @@ public class MilkPlugin extends JavaPlugin {
     private void registerCommands(PaperCommandManager commandManager) {
         this.registerContexts(commandManager);
 
-        Arrays.asList(new RankCommand()).forEach(commandManager::registerCommand);
+        Arrays.asList(new RankCommand(), new ListCommand()).forEach(commandManager::registerCommand);
     }
 
     private void registerContexts(PaperCommandManager commandManager) {
         commandManager.getCommandContexts().registerContext(Rank.class, c -> {
-            String arg = c.popFirstArg();
+            String arg = c.popFirstArg().toLowerCase();
 
-            if (!rankManager.getRanks().containsKey(arg.toLowerCase())) {
+            if (!rankManager.getRanks().containsKey(arg)) {
                 c.getSender().sendMessage(SERVER_COLOR_BRIGHT + "The specified rank does not exist.");
                 throw new InvalidCommandArgument(true);
             }
 
             return rankManager.getRanks().get(arg);
-        });
-
-        commandManager.getCommandContexts().registerContext(PlayerProfile.class, c -> {
-            String arg = c.popFirstArg();
-
-            if (Bukkit.getPlayer(arg) == null) {
-                c.getSender().sendMessage(SERVER_COLOR_BRIGHT + "The specified player is not online.");
-                throw new InvalidCommandArgument(true);
-            }
-
-            return profileManager.getProfile(Bukkit.getPlayer(arg));
         });
     }
 }

@@ -38,7 +38,7 @@ public class RankManager {
                     continue;
                 }
 
-                Rank rank = new Rank(document.getString("name"));
+                Rank rank = new Rank(document.getString("name").toLowerCase());
                 rank.load(document);
 
                 this.ranks.put(rank.getName(), rank);
