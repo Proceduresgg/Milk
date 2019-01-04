@@ -33,31 +33,15 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-    }
-
-    @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        PlayerProfile playerProfile = this.plugin.getProfileManager().getProfiles().get(player.getUniqueId());
-
-        if (playerProfile != null) {
-            playerProfile.save();
-        }
-
-        this.plugin.getProfileManager().getProfiles().remove(player.getUniqueId());
+        this.plugin.getProfileManager().getProfiles().remove(player.getUniqueId()).save();
     }
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         PlayerProfile playerProfile = this.plugin.getProfileManager().getProfile(player);
-
-        if (playerProfile == null) {
-            event.setCancelled(true);
-            return;
-        }
 
         event.setFormat(MessageUtil.color(playerProfile.getRank().getPrefix() + "%1$s" + ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s"));
     }
