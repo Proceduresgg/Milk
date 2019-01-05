@@ -17,11 +17,13 @@ import us.rengo.milk.rank.handler.RankManager;
 @CommandPermission("rengo.rank")
 public class RankCommand extends BaseCommand {
 
+    @Dependency private MilkPlugin plugin;
+
     @CommandAlias("rank")
     @Syntax("<target> <rank>")
     @CommandCompletion("@players")
     public void onRank(CommandSender sender, OfflinePlayer player, Rank rank) {
-        new PlayerProfile(player.getUniqueId()).load().whenComplete((profile, throwable) -> {
+        new PlayerProfile(this.plugin, player.getUniqueId()).load().whenComplete((profile, throwable) -> {
             if (throwable != null) {
                 sender.sendMessage(ChatColor.RED + "No such player exists.");
             } else {
@@ -40,7 +42,7 @@ public class RankCommand extends BaseCommand {
     @CommandCompletion("@players")
     public void onRank(CommandSender sender, OnlinePlayer onlinePlayer, Rank rank) {
         Player player = onlinePlayer.getPlayer();
-        PlayerProfile profile = ProfileManager.INSTANCE.getProfile(player.getUniqueId());
+        PlayerProfile profile = ProfileManager.INSTANCE.getProfile(this.plugin, player.getUniqueId());
 
         profile.setRank(rank);
         profile.save();
@@ -60,7 +62,7 @@ public class RankCommand extends BaseCommand {
         }
         sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been created.");
 
-        Rank rank = new Rank(name);
+        Rank rank = new Rank(this.plugin, name);
         RankManager.INSTANCE.getRanks().put(name.toLowerCase(), rank);
     }
 

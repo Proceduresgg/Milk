@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.Document;
 import org.bukkit.ChatColor;
+import us.rengo.milk.MilkPlugin;
 import us.rengo.milk.rank.handler.RankManager;
 import us.rengo.milk.utils.MessageUtil;
 
@@ -18,6 +19,8 @@ import java.util.List;
 
 @Getter @Setter
 public class Rank {
+
+    private final MilkPlugin plugin;
 
     private List<String> permissions = new ArrayList<>();
 
@@ -30,16 +33,13 @@ public class Rank {
 
     private ChatColor color = ChatColor.WHITE;
 
-    public Rank(String name) {
+    public Rank(MilkPlugin plugin, String name) {
+        this.plugin = plugin;
         this.name = name.toLowerCase();
     }
 
     public List<String> getAllPermissions() {
         List<String> permissions = new ArrayList<>(this.permissions);
-
-//        MilkPlugin.getInstance().getRankManager().getRanks().values().stream()
-//                .filter(rank -> rank.getHierarchy() < this.hierarchy)
-//                .forEach(rank -> permissions.addAll(rank.getPermissions()));
 
         return permissions;
     }
@@ -73,7 +73,7 @@ public class Rank {
 
         document.put("permissions", permissions.toString());
 
-        RankManager.INSTANCE.getCollection()
+        RankManager.INSTANCE.getCollection(this.plugin)
                 .replaceOne(Filters.eq("name", this.name), document, new ReplaceOptions().upsert(true));
     }
 

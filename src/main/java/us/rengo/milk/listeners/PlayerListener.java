@@ -23,7 +23,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
-        CompletableFuture<PlayerProfile> load = new PlayerProfile(event.getUniqueId()).load();
+        CompletableFuture<PlayerProfile> load = new PlayerProfile(this.plugin, event.getUniqueId()).load();
         try {
             ProfileManager.INSTANCE.getProfiles().put(event.getUniqueId(), load.get());
         } catch (Exception e) {
@@ -36,7 +36,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        ProfileManager.INSTANCE.getProfile(event.getPlayer()).setupPermissionsAttachment();
+        ProfileManager.INSTANCE.getProfile(this.plugin, event.getPlayer()).setupPermissionsAttachment();
     }
 
     @EventHandler
@@ -48,7 +48,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        PlayerProfile playerProfile = ProfileManager.INSTANCE.getProfile(player);
+        PlayerProfile playerProfile = ProfileManager.INSTANCE.getProfile(this.plugin, player);
 
         event.setFormat(MessageUtil.color(playerProfile.getRank().getPrefix() + "%1$s" + ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s"));
     }

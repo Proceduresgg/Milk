@@ -7,27 +7,30 @@ import org.bukkit.entity.Player;
 import us.rengo.milk.MilkPlugin;
 import us.rengo.milk.player.PlayerProfile;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public enum ProfileManager {
 
     INSTANCE;
 
-    private final Map<UUID, PlayerProfile> profiles = new HashMap<>();
-    private final MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("player-ranks");
+    private final Map<UUID, PlayerProfile> profiles = new ConcurrentHashMap<>();
 
-    public PlayerProfile getProfile(UUID uuid) {
-        return this.profiles.computeIfAbsent(uuid, k -> new PlayerProfile(uuid));
+    public PlayerProfile getProfile(MilkPlugin plugin, UUID uuid) {
+        return this.profiles.computeIfAbsent(uuid, k -> new PlayerProfile(plugin, uuid));
     }
 
-    public PlayerProfile getProfile(Player player) {
-        return this.getProfile(player.getUniqueId());
+    public PlayerProfile getProfile(MilkPlugin plugin, Player player) {
+        return this.getProfile(plugin, player.getUniqueId());
     }
 
     public void saveProfiles() {
         this.profiles.values().forEach(PlayerProfile::save);
+    }
+
+    public MongoCollection<Document> getCollection(MilkPlugin plugin) {
+        return plugin.getMongoDatabase().getCollection("player-ranks");
     }
 }

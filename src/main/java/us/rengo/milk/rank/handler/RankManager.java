@@ -16,19 +16,18 @@ public enum RankManager {
     INSTANCE;
 
     private final Map<String, Rank> ranks = new HashMap<>();
-    private final MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("ranks");
 
-    public void loadRanks() {
-        try (MongoCursor<Document> cursor = this.collection.find().iterator()) {
+    public void loadRanks(MilkPlugin plugin) {
+        try (MongoCursor<Document> cursor = this.getCollection(plugin).find().iterator()) {
             while (cursor.hasNext()) {
                 Document document = cursor.next();
 
                 if (document.getString("name").contains(" ")) {
-                    collection.deleteOne(document);
+                    this.getCollection(plugin).deleteOne(document);
                     continue;
                 }
 
-                Rank rank = new Rank(document.getString("name").toLowerCase());
+                Rank rank = new Rank(plugin, document.getString("name").toLowerCase());
                 rank.load(document);
 
                 this.ranks.put(rank.getName(), rank);
@@ -46,5 +45,9 @@ public enum RankManager {
 
     public void saveRanks() {
         this.ranks.values().forEach(Rank::save);
+    }
+
+    public MongoCollection<Document> getCollection(MilkPlugin plugin) {
+        return plugin.getMongoDatabase().getCollection("ranks");
     }
 }

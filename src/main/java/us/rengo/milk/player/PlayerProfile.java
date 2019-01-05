@@ -26,6 +26,8 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class PlayerProfile {
 
+    private final MilkPlugin plugin;
+
     private final UUID uuid;
 
     private final List<String> permissions = new ArrayList<>();
@@ -49,7 +51,7 @@ public class PlayerProfile {
                         .forEach((permission, value) -> attachmentInfo.getAttachment().unsetPermission(permission));
             }
 
-            PermissionAttachment attachment = player.addAttachment(MilkPlugin.getInstance());
+            PermissionAttachment attachment = player.addAttachment(this.plugin);
 
             this.getAllPermissions().forEach(perm -> attachment.setPermission(perm, true));
 
@@ -66,7 +68,7 @@ public class PlayerProfile {
 
     public CompletableFuture<PlayerProfile> load() {
         return CompletableFuture.supplyAsync(() -> {
-            Document document = ProfileManager.INSTANCE.getCollection()
+            Document document = ProfileManager.INSTANCE.getCollection(this.plugin)
                     .find(Filters.eq("uuid", this.uuid.toString())).first();
 
             if (document != null) {
@@ -93,7 +95,7 @@ public class PlayerProfile {
 
         document.put("permissions", permissions.toString());
 
-        ProfileManager.INSTANCE.getCollection()
+        ProfileManager.INSTANCE.getCollection(this.plugin)
                 .replaceOne(Filters.eq("uuid", this.uuid.toString()), document, new ReplaceOptions().upsert(true));
     }
 }

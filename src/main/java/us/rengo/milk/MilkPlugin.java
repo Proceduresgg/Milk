@@ -22,8 +22,6 @@ import java.util.Arrays;
 @Getter
 public class MilkPlugin extends JavaPlugin {
 
-    @Getter private static MilkPlugin instance;
-
     public static final ChatColor SERVER_COLOR_BRIGHT = ChatColor.DARK_AQUA;
     public static final ChatColor SERVER_COLOR_DIM = ChatColor.GRAY;
 
@@ -31,8 +29,6 @@ public class MilkPlugin extends JavaPlugin {
     private MongoDatabase mongoDatabase;
 
     public void onEnable() {
-        instance = this;
-
         // This mongo shit right here is ugly as fuck, I'll fix it later though.
         MongoClientOptions options = MongoClientOptions.builder().connectionsPerHost(50).build();
         MongoCredential credential = MongoCredential.createCredential("Shyon", "practice", "fuckk".toCharArray());
@@ -40,7 +36,7 @@ public class MilkPlugin extends JavaPlugin {
         this.mongoClient = new MongoClient(new ServerAddress("127.0.0.1", 27017), credential, options);
         this.mongoDatabase = this.mongoClient.getDatabase("milk");
 
-        RankManager.INSTANCE.loadRanks();
+        RankManager.INSTANCE.loadRanks(this);
 
         this.registerListeners();
         this.registerCommands(new PaperCommandManager(this));
