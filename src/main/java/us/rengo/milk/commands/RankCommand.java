@@ -6,12 +6,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import us.rengo.milk.MilkPlugin;
 import us.rengo.milk.player.PlayerProfile;
 import us.rengo.milk.rank.Rank;
 
 @CommandAlias("rank")
-@CommandPermission("rengo.admin")
+@CommandPermission("rengo.rank")
 public class RankCommand extends BaseCommand {
 
     @Dependency
@@ -67,9 +68,16 @@ public class RankCommand extends BaseCommand {
     }
 
     @Syntax("<prefix> <rank>")
-    @CommandAlias("setprefix")
+    @Subcommand("setprefix")
     public void onSetPrefix(CommandSender sender, Rank rank, String prefix) {
         rank.setPrefix(prefix);
         sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The prefix for that rank has been updated.");
+    }
+
+    @Syntax("<rank> <permission>")
+    @Subcommand("addpermission")
+    public void onAddPermission(Player player, Rank rank, String permission) {
+        rank.getPermissions().add(permission);
+        player.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "Permission has been added to the rank.");
     }
 }

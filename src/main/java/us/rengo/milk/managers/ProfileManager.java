@@ -18,7 +18,7 @@ public class ProfileManager {
     private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("player-ranks");
 
     public PlayerProfile getProfile(UUID uuid) {
-        return this.profiles.get(uuid);
+        return this.profiles.computeIfAbsent(uuid, k -> new PlayerProfile(uuid));
     }
 
     public PlayerProfile getProfile(Player player) {

@@ -36,11 +36,15 @@ public class Rank {
     }
 
     public List<String> getAllPermissions() {
+        permissions.forEach(perm -> System.out.println("SPEC PERMS + " + perm));
+
         List<String> permissions = new ArrayList<>(this.permissions);
 
-        MilkPlugin.getInstance().getRankManager().getRanks().values().stream()
-                .filter(rank -> rank.getHierarchy() < this.hierarchy)
-                .forEach(rank -> permissions.addAll(rank.getPermissions()));
+        permissions.forEach(perm -> System.out.println("GETTING ALL PERMS + " + perm));
+
+//        MilkPlugin.getInstance().getRankManager().getRanks().values().stream()
+//                .filter(rank -> rank.getHierarchy() < this.hierarchy)
+//                .forEach(rank -> permissions.addAll(rank.getPermissions()));
 
         return permissions;
     }
@@ -58,6 +62,9 @@ public class Rank {
         }
 
         this.permissions = permissions;
+
+        this.permissions.forEach(perm -> System.out.println("LOADING PERM: " + perm));
+        this.getAllPermissions().forEach(perm -> System.out.println("ALL PERM: " + perm));
     }
 
     public void save() {

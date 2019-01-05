@@ -13,7 +13,6 @@ public class ListCommand extends BaseCommand {
     @Dependency private MilkPlugin plugin;
 
     @CommandAlias("list")
-    @CommandPermission("rengo.admin")
     public void onList(Player player) {
         StringBuilder builder = new StringBuilder();
         this.plugin.getRankManager().getRanks().values().forEach(rank -> builder.append(rank.getName()).append(" ,"));

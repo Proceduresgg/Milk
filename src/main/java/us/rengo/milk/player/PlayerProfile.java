@@ -18,6 +18,7 @@ import us.rengo.milk.rank.Rank;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -37,10 +38,11 @@ public class PlayerProfile {
     }
 
     public Player toPlayer() {
-        return Bukkit.getPlayer(uuid);
+        return Bukkit.getPlayer(this.uuid);
     }
 
     public void setupPermissionsAttachment() {
+        System.out.println("ATTACHING PERMISSIONS");
         Player player = this.toPlayer();
 
         if (player != null) {
@@ -55,18 +57,22 @@ public class PlayerProfile {
             }
 
             PermissionAttachment attachment = player.addAttachment(MilkPlugin.getInstance());
+            this.getAllPermissions().forEach(perm -> attachment.setPermission(perm, true));
 
             player.recalculatePermissions();
         }
     }
 
     private List<String> getAllPermissions() {
+        if (this.rank.getAllPermissions().isEmpty()) {
+            System.out.println("EMPTY");
+        }
         List<String> permissions = new ArrayList<>(this.permissions);
 
-        if (this.rank.getAllPermissions() != null) {
-            permissions.addAll(this.rank.getAllPermissions());
-        }
+        this.rank.getAllPermissions().forEach(System.out::println);
+        permissions.addAll(this.rank.getAllPermissions());
 
+        permissions.forEach(System.out::println);
         return permissions;
     }
 

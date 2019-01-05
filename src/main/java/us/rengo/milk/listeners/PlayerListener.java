@@ -33,6 +33,11 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        this.plugin.getProfileManager().getProfile(event.getPlayer()).setupPermissionsAttachment();
+    }
+
+    @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         this.plugin.getProfileManager().getProfiles().remove(player.getUniqueId()).save();
@@ -43,6 +48,13 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         PlayerProfile playerProfile = this.plugin.getProfileManager().getProfile(player);
 
+        if (playerProfile == null) {
+            Bukkit.getLogger().severe("PLAYER PROFILE NULL: " + player.getName());
+        } else if (playerProfile.getRank() == null) {
+            Bukkit.getLogger().severe("PLAYER RANk NULL: " + player.getName());
+        } else if (playerProfile.getRank().getPrefix() == null) {
+            Bukkit.getLogger().severe("PLAYER PREFIX NULL");
+        }
         event.setFormat(MessageUtil.color(playerProfile.getRank().getPrefix() + "%1$s" + ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s"));
     }
 }
