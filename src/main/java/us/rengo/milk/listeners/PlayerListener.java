@@ -41,14 +41,12 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        ProfileManager.INSTANCE.getProfiles().remove(player.getUniqueId()).save();
+        ProfileManager.INSTANCE.getProfiles().remove(event.getPlayer().getUniqueId()).save();
     }
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
-        PlayerProfile playerProfile = ProfileManager.INSTANCE.getProfile(this.plugin, player);
+        PlayerProfile playerProfile = ProfileManager.INSTANCE.getProfile(this.plugin, event.getPlayer());
 
         event.setFormat(MessageUtil.color(playerProfile.getRank().getPrefix() + "%1$s" + ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s"));
     }

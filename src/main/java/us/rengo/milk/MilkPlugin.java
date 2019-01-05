@@ -28,6 +28,7 @@ public class MilkPlugin extends JavaPlugin {
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
 
+    @Override
     public void onEnable() {
         // This mongo shit right here is ugly as fuck, I'll fix it later though.
         MongoClientOptions options = MongoClientOptions.builder().connectionsPerHost(50).build();
@@ -42,6 +43,7 @@ public class MilkPlugin extends JavaPlugin {
         this.registerCommands(new PaperCommandManager(this));
     }
 
+    @Override
     public void onDisable() {
         RankManager.INSTANCE.saveRanks();
         ProfileManager.INSTANCE.saveProfiles();

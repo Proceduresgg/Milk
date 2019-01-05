@@ -56,41 +56,44 @@ public class RankCommand extends BaseCommand {
     @Syntax("<name>")
     @Subcommand("create")
     public void onCreate(CommandSender sender, String name) {
+        name = name.toLowerCase();
+
         if (RankManager.INSTANCE.getRanks().containsKey(name)) {
             sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "That rank already exists.");
             return;
         }
-        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been created.");
 
         Rank rank = new Rank(this.plugin, name);
-        RankManager.INSTANCE.getRanks().put(name.toLowerCase(), rank);
+        RankManager.INSTANCE.getRanks().put(name, rank);
+
+        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been created.");
     }
 
     @CommandAlias("rank")
     @Syntax("<rank>")
     @Subcommand("delete")
     public void onDelete(CommandSender sender, Rank rank) {
-        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been deleted.");
-
         RankManager.INSTANCE.getRanks().remove(rank.getName());
+
+        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been deleted.");
     }
 
     @CommandAlias("rank")
     @Syntax("<prefix> <rank>")
     @Subcommand("setprefix")
     public void onSetPrefix(CommandSender sender, Rank rank, String prefix) {
-        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The prefix for that rank has been updated.");
-
         rank.setPrefix(prefix);
         rank.save();
+
+        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The prefix for that rank has been updated.");
     }
 
     @CommandAlias("rank")
     @Syntax("<rank> <permission>")
     @Subcommand("addpermission")
     public void onAddPermission(Player player, Rank rank, String permission) {
-        player.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "Permission has been added to the rank.");
-
         rank.getPermissions().add(permission);
+
+        player.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "Permission has been added to the rank.");
     }
 }
