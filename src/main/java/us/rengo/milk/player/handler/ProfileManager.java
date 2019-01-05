@@ -16,8 +16,8 @@ public enum ProfileManager {
 
     INSTANCE;
 
-    private Map<UUID, PlayerProfile> profiles = new HashMap<>();
-    private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("player-ranks");
+    private final Map<UUID, PlayerProfile> profiles = new HashMap<>();
+    private final MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("player-ranks");
 
     public PlayerProfile getProfile(UUID uuid) {
         return this.profiles.computeIfAbsent(uuid, k -> new PlayerProfile(uuid));
