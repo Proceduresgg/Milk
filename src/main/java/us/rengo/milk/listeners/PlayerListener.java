@@ -27,9 +27,10 @@ public class PlayerListener implements Listener {
         try {
             ProfileManager.INSTANCE.getProfiles().put(event.getUniqueId(), load.get());
         } catch (Exception e) {
-            e.printStackTrace();
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                    ChatColor.RED + "Failed to load your data, please try to rejoin.");
 
-            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, ChatColor.RED + "Error Loading Data Try Again");
+            e.printStackTrace();
         }
     }
 

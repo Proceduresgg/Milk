@@ -58,33 +58,37 @@ public class RankCommand extends BaseCommand {
             sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "That rank already exists.");
             return;
         }
+        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been created.");
 
         Rank rank = new Rank(name);
         RankManager.INSTANCE.getRanks().put(name.toLowerCase(), rank);
-        sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been created.");
     }
 
     @CommandAlias("rank")
     @Syntax("<rank>")
     @Subcommand("delete")
     public void onDelete(CommandSender sender, Rank rank) {
-        RankManager.INSTANCE.getRanks().remove(rank.getName());
         sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been deleted.");
+
+        RankManager.INSTANCE.getRanks().remove(rank.getName());
     }
 
     @CommandAlias("rank")
     @Syntax("<prefix> <rank>")
     @Subcommand("setprefix")
     public void onSetPrefix(CommandSender sender, Rank rank, String prefix) {
-        rank.setPrefix(prefix);
         sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The prefix for that rank has been updated.");
+
+        rank.setPrefix(prefix);
+        rank.save();
     }
 
     @CommandAlias("rank")
     @Syntax("<rank> <permission>")
     @Subcommand("addpermission")
     public void onAddPermission(Player player, Rank rank, String permission) {
-        rank.getPermissions().add(permission);
         player.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "Permission has been added to the rank.");
+
+        rank.getPermissions().add(permission);
     }
 }
