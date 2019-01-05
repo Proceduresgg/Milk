@@ -8,19 +8,16 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 import us.rengo.milk.commands.ListCommand;
 import us.rengo.milk.commands.RankCommand;
 import us.rengo.milk.listeners.PlayerListener;
-import us.rengo.milk.managers.ProfileManager;
-import us.rengo.milk.managers.RankManager;
-import us.rengo.milk.player.PlayerProfile;
+import us.rengo.milk.player.handler.ProfileManager;
+import us.rengo.milk.rank.handler.RankManager;
 import us.rengo.milk.rank.Rank;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 @Getter
 public class MilkPlugin extends JavaPlugin {
@@ -33,27 +30,25 @@ public class MilkPlugin extends JavaPlugin {
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
 
-    private ProfileManager profileManager;
-    private RankManager rankManager;
-
     public void onEnable() {
         instance = this;
 
+        // This mongo shit right here is ugly as fuck, I'll fix it later though.
         MongoClientOptions options = MongoClientOptions.builder().connectionsPerHost(50).build();
         MongoCredential credential = MongoCredential.createCredential("Shyon", "practice", "fuckk".toCharArray());
+
         this.mongoClient = new MongoClient(new ServerAddress("127.0.0.1", 27017), credential, options);
         this.mongoDatabase = this.mongoClient.getDatabase("milk");
 
-        this.profileManager = new ProfileManager();
-        this.rankManager = new RankManager();
+        RankManager.INSTANCE.loadRanks();
 
         this.registerListeners();
         this.registerCommands(new PaperCommandManager(this));
     }
 
     public void onDisable() {
-        this.rankManager.saveRanks();
-        this.profileManager.saveProfiles();
+        RankManager.INSTANCE.saveRanks();
+        ProfileManager.INSTANCE.saveProfiles();
     }
 
     private void registerListeners() {
@@ -70,12 +65,12 @@ public class MilkPlugin extends JavaPlugin {
         commandManager.getCommandContexts().registerContext(Rank.class, c -> {
             String arg = c.popFirstArg().toLowerCase();
 
-            if (!rankManager.getRanks().containsKey(arg)) {
+            if (!RankManager.INSTANCE.getRanks().containsKey(arg)) {
                 c.getSender().sendMessage(SERVER_COLOR_BRIGHT + "The specified rank does not exist.");
                 throw new InvalidCommandArgument(true);
             }
 
-            return rankManager.getRanks().get(arg);
+            return RankManager.INSTANCE.getRanks().get(arg);
         });
     }
 }

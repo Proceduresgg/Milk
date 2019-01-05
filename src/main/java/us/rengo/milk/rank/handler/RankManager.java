@@ -1,4 +1,4 @@
-package us.rengo.milk.managers;
+package us.rengo.milk.rank.handler;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -11,29 +11,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Getter
-public class RankManager {
+public enum RankManager {
 
-    private Map<String, Rank> ranks = new HashMap<>();
-    private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("ranks");
+    INSTANCE;
 
-    public RankManager() {
-        this.loadRanks();
+    private final Map<String, Rank> ranks = new HashMap<>();
+    private final MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("ranks");
 
-        if (!this.ranks.containsKey("default")) {
-            this.ranks.put("default", new Rank("default"));
-        }
-    }
-
-    private void loadRanks() {
+    public void loadRanks() {
         try (MongoCursor<Document> cursor = this.collection.find().iterator()) {
             while (cursor.hasNext()) {
                 Document document = cursor.next();
 
-                if (document.getString("name") == null) {
-                    collection.deleteOne(document);
-                    continue;
-
-                } else if (document.getString("name").contains(" ")) {
+                if (document.getString("name").contains(" ")) {
                     collection.deleteOne(document);
                     continue;
                 }
@@ -46,9 +36,15 @@ public class RankManager {
         }
     }
 
+    public boolean isRank(String name) {
+        return this.ranks.containsKey(name);
+    }
+
+    public Rank getRank(String rank) {
+        return this.ranks.get(rank);
+    }
+
     public void saveRanks() {
-        for (Rank rank : this.ranks.values()) {
-            rank.save();
-        }
+        this.ranks.values().forEach(Rank::save);
     }
 }

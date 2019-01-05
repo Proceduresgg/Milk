@@ -1,12 +1,11 @@
 package us.rengo.milk.player;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -14,35 +13,30 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import us.rengo.milk.MilkPlugin;
+import us.rengo.milk.player.handler.ProfileManager;
+import us.rengo.milk.rank.handler.RankManager;
 import us.rengo.milk.rank.Rank;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-@Getter
-@Setter
+@Getter @Setter
+@RequiredArgsConstructor
 public class PlayerProfile {
 
     private final UUID uuid;
 
-    private List<String> permissions = new ArrayList<>();
+    private final List<String> permissions = new ArrayList<>();
     
-    private Rank rank;
-
-    public PlayerProfile(UUID uuid) {
-        this.uuid = uuid;
-        this.rank = MilkPlugin.getInstance().getRankManager().getRanks().get("default");
-    }
+    private Rank rank = RankManager.INSTANCE.getRanks().get("default");
 
     public Player toPlayer() {
         return Bukkit.getPlayer(this.uuid);
     }
 
     public void setupPermissionsAttachment() {
-        System.out.println("ATTACHING PERMISSIONS");
         Player player = this.toPlayer();
 
         if (player != null) {
@@ -51,12 +45,12 @@ public class PlayerProfile {
                     continue;
                 }
 
-                attachmentInfo.getAttachment().getPermissions().forEach((permission, value) -> {
-                    attachmentInfo.getAttachment().unsetPermission(permission);
-                });
+                attachmentInfo.getAttachment().getPermissions()
+                        .forEach((permission, value) -> attachmentInfo.getAttachment().unsetPermission(permission));
             }
 
             PermissionAttachment attachment = player.addAttachment(MilkPlugin.getInstance());
+
             this.getAllPermissions().forEach(perm -> attachment.setPermission(perm, true));
 
             player.recalculatePermissions();
@@ -64,29 +58,22 @@ public class PlayerProfile {
     }
 
     private List<String> getAllPermissions() {
-        if (this.rank.getAllPermissions().isEmpty()) {
-            System.out.println("EMPTY");
-        }
         List<String> permissions = new ArrayList<>(this.permissions);
-
-        this.rank.getAllPermissions().forEach(System.out::println);
         permissions.addAll(this.rank.getAllPermissions());
 
-        permissions.forEach(System.out::println);
         return permissions;
     }
 
     public CompletableFuture<PlayerProfile> load() {
         return CompletableFuture.supplyAsync(() -> {
-            Document document = MilkPlugin.getInstance().getProfileManager().getCollection().find(Filters.eq("uuid", this.uuid.toString())).first();
+            Document document = ProfileManager.INSTANCE.getCollection()
+                    .find(Filters.eq("uuid", this.uuid.toString())).first();
 
             if (document != null) {
-                if (MilkPlugin.getInstance().getRankManager().getRanks().keySet().contains(document.getString("rank"))) {
-                    MilkPlugin.getInstance().getRankManager().getRanks().entrySet()
-                            .stream()
-                            .filter(entry -> entry.getKey().equals(document.getString("rank")))
-                            .filter(entry -> entry.getValue() != null)
-                            .forEach(entry -> this.rank = entry.getValue());
+                String name = document.getString("rank");
+
+                if (RankManager.INSTANCE.isRank(name)) {
+                    this.rank = RankManager.INSTANCE.getRank(name);
                 }
             }
             return PlayerProfile.this;
@@ -101,10 +88,12 @@ public class PlayerProfile {
         }
 
         JsonArray permissions = new JsonArray();
+
         this.permissions.forEach(perm -> permissions.add(new JsonPrimitive(perm)));
 
         document.put("permissions", permissions.toString());
 
-        MilkPlugin.getInstance().getProfileManager().getCollection().replaceOne(Filters.eq("uuid", this.uuid.toString()), document, new ReplaceOptions().upsert(true));
+        ProfileManager.INSTANCE.getCollection()
+                .replaceOne(Filters.eq("uuid", this.uuid.toString()), document, new ReplaceOptions().upsert(true));
     }
 }

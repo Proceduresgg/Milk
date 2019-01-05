@@ -1,4 +1,4 @@
-package us.rengo.milk.managers;
+package us.rengo.milk.player.handler;
 
 import com.mongodb.client.MongoCollection;
 import lombok.Getter;
@@ -12,7 +12,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Getter
-public class ProfileManager {
+public enum ProfileManager {
+
+    INSTANCE;
 
     private Map<UUID, PlayerProfile> profiles = new HashMap<>();
     private MongoCollection<Document> collection = MilkPlugin.getInstance().getMongoDatabase().getCollection("player-ranks");

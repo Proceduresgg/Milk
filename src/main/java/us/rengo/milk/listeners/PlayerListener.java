@@ -1,7 +1,6 @@
 package us.rengo.milk.listeners;
 
 import lombok.AllArgsConstructor;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,6 +10,7 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import us.rengo.milk.MilkPlugin;
+import us.rengo.milk.player.handler.ProfileManager;
 import us.rengo.milk.player.PlayerProfile;
 import us.rengo.milk.utils.MessageUtil;
 
@@ -25,36 +25,30 @@ public class PlayerListener implements Listener {
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
         CompletableFuture<PlayerProfile> load = new PlayerProfile(event.getUniqueId()).load();
         try {
-            this.plugin.getProfileManager().getProfiles().put(event.getUniqueId(), load.get());
+            ProfileManager.INSTANCE.getProfiles().put(event.getUniqueId(), load.get());
         } catch (Exception e) {
             e.printStackTrace();
+
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, ChatColor.RED + "Error Loading Data Try Again");
         }
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        this.plugin.getProfileManager().getProfile(event.getPlayer()).setupPermissionsAttachment();
+        ProfileManager.INSTANCE.getProfile(event.getPlayer()).setupPermissionsAttachment();
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        this.plugin.getProfileManager().getProfiles().remove(player.getUniqueId()).save();
+        ProfileManager.INSTANCE.getProfiles().remove(player.getUniqueId()).save();
     }
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        PlayerProfile playerProfile = this.plugin.getProfileManager().getProfile(player);
+        PlayerProfile playerProfile = ProfileManager.INSTANCE.getProfile(player);
 
-        if (playerProfile == null) {
-            Bukkit.getLogger().severe("PLAYER PROFILE NULL: " + player.getName());
-        } else if (playerProfile.getRank() == null) {
-            Bukkit.getLogger().severe("PLAYER RANk NULL: " + player.getName());
-        } else if (playerProfile.getRank().getPrefix() == null) {
-            Bukkit.getLogger().severe("PLAYER PREFIX NULL");
-        }
         event.setFormat(MessageUtil.color(playerProfile.getRank().getPrefix() + "%1$s" + ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s"));
     }
 }
