@@ -10,9 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import us.rengo.milk.MilkPlugin;
 import us.rengo.milk.player.PlayerProfile;
-import us.rengo.milk.player.handler.ProfileManager;
 import us.rengo.milk.rank.Rank;
-import us.rengo.milk.rank.handler.RankManager;
 
 @CommandPermission("rengo.rank")
 public class RankCommand extends BaseCommand {
@@ -42,7 +40,7 @@ public class RankCommand extends BaseCommand {
     @CommandCompletion("@players")
     public void onRank(CommandSender sender, OnlinePlayer onlinePlayer, Rank rank) {
         Player player = onlinePlayer.getPlayer();
-        PlayerProfile profile = ProfileManager.INSTANCE.getProfile(this.plugin, player.getUniqueId());
+        PlayerProfile profile = PlayerProfile.getProfile(this.plugin, player.getUniqueId());
 
         profile.setRank(rank);
         profile.save();
@@ -58,13 +56,13 @@ public class RankCommand extends BaseCommand {
     public void onCreate(CommandSender sender, String name) {
         name = name.toLowerCase();
 
-        if (RankManager.INSTANCE.getRanks().containsKey(name)) {
+        if (Rank.isRank(name)) {
             sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "That rank already exists.");
             return;
         }
 
         Rank rank = new Rank(this.plugin, name);
-        RankManager.INSTANCE.getRanks().put(name, rank);
+        Rank.getRanks().put(name, rank);
 
         sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been created.");
     }
@@ -73,7 +71,7 @@ public class RankCommand extends BaseCommand {
     @Syntax("<rank>")
     @Subcommand("delete")
     public void onDelete(CommandSender sender, Rank rank) {
-        RankManager.INSTANCE.getRanks().remove(rank.getName());
+        Rank.getRanks().remove(rank.getName());
 
         sender.sendMessage(MilkPlugin.SERVER_COLOR_BRIGHT + "The specified rank has been deleted.");
     }

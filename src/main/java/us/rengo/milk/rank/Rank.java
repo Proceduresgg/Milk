@@ -1,9 +1,10 @@
 package us.rengo.milk.rank;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import lombok.Getter;
@@ -11,14 +12,19 @@ import lombok.Setter;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import us.rengo.milk.MilkPlugin;
-import us.rengo.milk.rank.handler.RankManager;
 import us.rengo.milk.utils.MessageUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter @Setter
 public class Rank {
+
+    @Getter private final static Map<String, Rank> ranks = new HashMap<>();
+
+    private static MongoCollection<Document> collection;
 
     private final MilkPlugin plugin;
 
@@ -73,11 +79,42 @@ public class Rank {
 
         document.put("permissions", permissions.toString());
 
-        RankManager.INSTANCE.getCollection(this.plugin)
-                .replaceOne(Filters.eq("name", this.name), document, new ReplaceOptions().upsert(true));
+        collection.replaceOne(Filters.eq("name", this.name), document, new ReplaceOptions().upsert(true));
     }
 
     public String getName() {
         return MessageUtil.color(this.name);
+    }
+
+    public static void init(MilkPlugin plugin) {
+        collection = plugin.getMongoDatabase().getCollection("ranks");
+
+        try (MongoCursor<Document> cursor = collection.find().iterator()) {
+            while (cursor.hasNext()) {
+                Document document = cursor.next();
+
+                if (document.getString("name").contains(" ")) {
+                    collection.deleteOne(document);
+                    continue;
+                }
+
+                Rank rank = new Rank(plugin, document.getString("name").toLowerCase());
+                rank.load(document);
+
+                ranks.put(rank.getName(), rank);
+            }
+        }
+    }
+
+    public static boolean isRank(String name) {
+        return ranks.containsKey(name);
+    }
+
+    public static Rank getRank(String rank) {
+        return ranks.get(rank);
+    }
+
+    public static void saveRanks() {
+        ranks.values().forEach(Rank::save);
     }
 }

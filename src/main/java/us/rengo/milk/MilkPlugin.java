@@ -13,8 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import us.rengo.milk.commands.ListCommand;
 import us.rengo.milk.commands.RankCommand;
 import us.rengo.milk.listeners.PlayerListener;
-import us.rengo.milk.player.handler.ProfileManager;
-import us.rengo.milk.rank.handler.RankManager;
+import us.rengo.milk.player.PlayerProfile;
 import us.rengo.milk.rank.Rank;
 
 import java.util.Arrays;
@@ -37,7 +36,8 @@ public class MilkPlugin extends JavaPlugin {
         this.mongoClient = new MongoClient(new ServerAddress("127.0.0.1", 27017), credential, options);
         this.mongoDatabase = this.mongoClient.getDatabase("milk");
 
-        RankManager.INSTANCE.loadRanks(this);
+        Rank.init(this);
+        PlayerProfile.init(this);
 
         this.registerListeners();
         this.registerCommands(new PaperCommandManager(this));
@@ -45,8 +45,8 @@ public class MilkPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        RankManager.INSTANCE.saveRanks();
-        ProfileManager.INSTANCE.saveProfiles();
+        Rank.saveRanks();
+        PlayerProfile.saveProfiles();
     }
 
     private void registerListeners() {
@@ -63,12 +63,12 @@ public class MilkPlugin extends JavaPlugin {
         commandManager.getCommandContexts().registerContext(Rank.class, c -> {
             String arg = c.popFirstArg().toLowerCase();
 
-            if (!RankManager.INSTANCE.getRanks().containsKey(arg)) {
+            if (!Rank.isRank(arg)) {
                 c.getSender().sendMessage(SERVER_COLOR_BRIGHT + "The specified rank does not exist.");
                 throw new InvalidCommandArgument(true);
             }
 
-            return RankManager.INSTANCE.getRanks().get(arg);
+            return Rank.getRank(arg);
         });
     }
 }
